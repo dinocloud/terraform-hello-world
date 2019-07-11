@@ -16,24 +16,40 @@ provider "aws" {
   region  = "us-east-1"
 }
 
-
 resource "aws_subnet" "public-1a" {
   availability_zone = "us-east-1a"
   cidr_block        = "10.0.10.0/24"
   vpc_id            = "${aws_vpc.main.id}"
+
+  tags = {
+    Name = "nombre-equipo-public"
+  }
 }
+
 resource "aws_subnet" "private-1a" {
   availability_zone = "us-east-1a"
   cidr_block        = "10.0.20.0/24"
   vpc_id            = "${aws_vpc.main.id}"
+
+  tags = {
+    Name = "nombre-equipo-private"
+  }
 }
 
 resource "aws_route_table" "public-1a" {
-  vpc_id           = "${aws_vpc.main.id}"
+  vpc_id = "${aws_vpc.main.id}"
+
+  tags = {
+    Name = "nombre-equipo-public"
+  }
 }
 
 resource "aws_route_table" "private-1a" {
-  vpc_id           = "${aws_vpc.main.id}"
+  vpc_id = "${aws_vpc.main.id}"
+
+  tags = {
+    Name = "nombre-equipo-private"
+  }
 }
 
 resource "aws_route_table_association" "route_private_ngw" {
@@ -64,7 +80,7 @@ resource "aws_nat_gateway" "ngw" {
 }
 
 resource "aws_eip" "main" {
-  vpc   = true
+  vpc = true
 }
 
 resource "aws_internet_gateway" "igw" {
@@ -72,20 +88,24 @@ resource "aws_internet_gateway" "igw" {
 }
 
 resource "aws_vpc" "main" {
-  cidr_block                       = "10.0.0.0/16"
+  cidr_block                       = "${var.vpc_cidr_block}"
   instance_tenancy                 = "default"
   assign_generated_ipv6_cidr_block = "false"
   enable_classiclink               = "false"
   enable_dns_hostnames             = "false"
   enable_classiclink_dns_support   = "false"
+
+  tags = {
+    Name = "nombre-equipo"
+  }
 }
 
 resource "aws_instance" "web" {
-  ami           = "ami-0abcb9f9190e867ab"
-  instance_type = "t2.micro"
+  ami               = "ami-0abcb9f9190e867ab"
+  instance_type     = "t2.micro"
   availability_zone = "us-east-1a"
-  subnet_id = "${aws_subnet.private-1a.id}"
-  user_data_base64 = "${base64encode(data.template_file.userdata.rendered)}"
+  subnet_id         = "${aws_subnet.private-1a.id}"
+  user_data_base64  = "${base64encode(data.template_file.userdata.rendered)}"
 
   tags = {
     Name = "terraform-hello-world"
